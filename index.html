@@ -7,11 +7,12 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
       :root {
-        --primary: #6a11cb;
-        --secondary: #2575fc;
-        --bg-dark: #0f0f13;
+        --primary: #ff4757;
+        --secondary: #ffa502;
+        --bg-dark: #1a1a2e;
         --text-main: #ffffff;
-        --border-glow: rgba(37, 117, 252, 0.4);
+        --border-inner: #0f3460;
+        --glow: rgba(255, 255, 255, 0.1);
       }
 
       body {
@@ -25,23 +26,38 @@
         height: 100vh;
         margin: 0;
         overflow: hidden;
-        padding: 10px;
+        padding: 20px;
         box-sizing: border-box;
       }
 
       h2 {
-        margin: 0 0 15px 0;
-        font-weight: 600;
-        letter-spacing: 0.5px;
+        margin: 0 0 20px 0;
+        font-weight: 700;
+        letter-spacing: 1px;
         text-align: center;
-        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        text-transform: uppercase;
+        color: #ffd700;
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
       }
 
       .wheel-wrapper {
         position: relative;
-        width: 280px;
-        height: 280px;
-        margin: 0 auto 25px;
+        width: 300px;
+        height: 300px;
+        margin-bottom: 30px;
+      }
+
+      .wheel-border {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 6px solid #f1c40f;
+        box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
+        z-index: 2;
+        pointer-events: none;
       }
 
       .wheel {
@@ -51,8 +67,8 @@
         position: relative;
         transform-origin: center center;
         transition: transform 4s cubic-bezier(0.17, 0.67, 0.08, 0.99);
-        box-shadow: 0 0 0 4px var(--border-glow), 0 10px 30px rgba(0, 0, 0, 0.6);
         will-change: transform;
+        z-index: 1;
       }
 
       .sector {
@@ -61,86 +77,95 @@
         left: 0;
         width: 100%;
         height: 100%;
-        clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 11px;
-        font-weight: 700;
+        font-size: 14px;
+        font-weight: 800;
         text-transform: uppercase;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         overflow: hidden;
+        backface-visibility: hidden;
+      }
+
+      /* Цвета секторов (яркие, контрастные) */
+      .color-0 { background: #ff6b6b; }
+      .color-1 { background: #4ecdc4; }
+      .color-2 { background: #45b7d1; }
+      .color-3 { background: #96ceb4; }
+      .color-4 { background: #ffeaa7; }
+      .color-5 { background: #dfe6e9; color: #2d3436; text-shadow: none; }
+      .color-6 { background: #6c5ce7; color: #fff; }
+      .color-7 { background: #fd79a8; color: #fff; }
+
+      .pointer-wrapper {
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        animation: bounce 2s infinite;
       }
 
       .pointer {
-        position: absolute;
-        top: -25px;
-        left: 50%;
-        transform: translateX(-50%);
         width: 0;
         height: 0;
-        border-left: 20px solid transparent;
-        border-right: 20px solid transparent;
-        border-top: 45px solid #ffffff;
-        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
-        z-index: 10;
-        animation: pulse 2s infinite;
+        border-left: 25px solid transparent;
+        border-right: 25px solid transparent;
+        border-top: 50px solid #ffd700;
+        filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5));
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
       }
 
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.6; }
+      @keyframes bounce {
+        0%, 100% { transform: translateX(-50%) scaleY(1); }
+        50% { transform: translateX(-50%) scaleY(0.9); }
       }
 
       button {
-        padding: 16px 32px;
+        padding: 18px 40px;
         font-size: 18px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
         color: white;
         border: none;
         border-radius: 50px;
-        box-shadow: 0 6px 20px rgba(106, 17, 203, 0.4);
+        box-shadow: 0 10px 20px rgba(255, 71, 87, 0.4);
         transition: transform 0.1s, box-shadow 0.3s ease;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
       }
 
       button:active { transform: scale(0.96); }
       button:disabled {
-        opacity: 0.7;
+        opacity: 0.6;
         cursor: not-allowed;
         box-shadow: none;
         transform: none;
       }
 
       #result {
-        margin-top: 20px;
-        font-size: 20px;
-        font-weight: 700;
-        min-height: 28px;
+        margin-top: 25px;
+        font-size: 22px;
+        font-weight: 800;
+        min-height: 30px;
         text-align: center;
         color: #ffd700;
-        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
       }
-
-      .color-0 { background: #ff4757; }
-      .color-1 { background: #ffa502; }
-      .color-2 { background: #2ed573; }
-      .color-3 { background: #1e90ff; }
-      .color-4 { background: #a55eea; }
-      .color-5 { background: #ff6b81; }
-      .color-6 { background: #f1c40f; }
-      .color-7 { background: #1dd1a1; }
     </style>
   </head>
   <body>
-    <h2>🎡 Колесо удачи</h2>
+    <h2>🎰 Колесо Фортуны</h2>
 
     <div class="wheel-wrapper">
+      <div class="wheel-border"></div>
       <div id="wheel" class="wheel"></div>
-      <div class="pointer"></div>
+      <div class="pointer-wrapper">
+        <div class="pointer"></div>
+      </div>
     </div>
 
     <button id="spin-btn">Крутить!</button>
@@ -155,7 +180,7 @@
       const spinBtn = document.getElementById('spin-btn');
       const resultEl = document.getElementById('result');
 
-      // Новые названия призов
+      // Твои новые призы
       const prizes = [
         'Лиман',
         'Масляковка',
@@ -168,13 +193,18 @@
       ];
 
       const sectorsCount = prizes.length;
+      const sectorAngle = 360 / sectorsCount;
 
+      // Рисуем секторы
       for (let i = 0; i < sectorsCount; i++) {
         const sector = document.createElement('div');
         sector.className = `sector color-\${i}`;
         sector.textContent = prizes[i];
-        const angle = (360 / sectorsCount) * i;
-        sector.style.transform = `rotate(\${angle}deg)`;
+        
+        // Поворачиваем сам сектор, чтобы текст лег правильно
+        const rotation = i * sectorAngle;
+        sector.style.transform = `rotate(\${rotation}deg)`;
+        
         wheel.appendChild(sector);
       }
 
@@ -186,23 +216,28 @@
         spinBtn.disabled = true;
         resultEl.textContent = '';
 
+        // Случайное вращение: от 7 до 16 полных оборотов + случайный угол
         const randomTurns = Math.floor(Math.random() * 10) + 7;
         const randomOffset = Math.floor(Math.random() * 360);
         const totalDeg = randomTurns * 360 + randomOffset;
 
+        // Сброс и подготовка к анимации
         wheel.style.transition = 'none';
         wheel.style.transform = 'rotate(0deg)';
         
-        // Принудительный пересчет стилей (fix для анимации)
+        // Force reflow (критически важно для работы transition)
         void wheel.offsetWidth; 
 
+        // Запуск анимации
         wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.08, 0.99)';
         wheel.style.transform = `rotate(\${totalDeg}deg)`;
 
         setTimeout(() => {
           const finalAngle = totalDeg % 360;
-          const sectorAngle = 360 / sectorsCount;
           
+          // Вычисляем индекс сектора под стрелкой
+          // Стрелка сверху (0 градусов). Колесо крутится по часовой.
+          // Формула: (360 - угол) / размер сектора
           let sectorIndex = Math.floor((360 - finalAngle) / sectorAngle);
           sectorIndex = sectorIndex % sectorsCount;
 
@@ -210,6 +245,7 @@
           resultEl.textContent = `🎉 Выпало: \${prize}`;
           tg.sendData(prize);
 
+          // Сброс состояния
           setTimeout(() => {
             wheel.style.transition = 'none';
             wheel.style.transform = 'rotate(0deg)';
