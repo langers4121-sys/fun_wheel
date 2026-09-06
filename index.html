@@ -3,20 +3,221 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Рулетка</title>
+    <title>Колесо удачи</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css" />
+    <style>
+      :root {
+        --primary: #6a11cb;
+        --secondary: #2575fc;
+        --bg-dark: #0f0f13;
+        --text-main: #ffffff;
+        --border-glow: rgba(37, 117, 252, 0.4);
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg-dark);
+        color: var(--text-main);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+
+      h2 {
+        margin: 0 0 15px 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-align: center;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      .wheel-wrapper {
+        position: relative;
+        width: 280px;
+        height: 280px;
+        margin: 0 auto 25px;
+      }
+
+      .wheel {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        position: relative;
+        transform-origin: center center;
+        transition: transform 4s cubic-bezier(0.17, 0.67, 0.08, 0.99);
+        box-shadow: 0 0 0 4px var(--border-glow), 0 10px 30px rgba(0, 0, 0, 0.6);
+        will-change: transform;
+      }
+
+      .sector {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        overflow: hidden;
+      }
+
+      .pointer {
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-top: 45px solid #ffffff;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+        z-index: 10;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+
+      button {
+        padding: 16px 32px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border: none;
+        border-radius: 50px;
+        box-shadow: 0 6px 20px rgba(106, 17, 203, 0.4);
+        transition: transform 0.1s, box-shadow 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      button:active { transform: scale(0.96); }
+      button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
+
+      #result {
+        margin-top: 20px;
+        font-size: 20px;
+        font-weight: 700;
+        min-height: 28px;
+        text-align: center;
+        color: #ffd700;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      }
+
+      .color-0 { background: #ff4757; }
+      .color-1 { background: #ffa502; }
+      .color-2 { background: #2ed573; }
+      .color-3 { background: #1e90ff; }
+      .color-4 { background: #a55eea; }
+      .color-5 { background: #ff6b81; }
+      .color-6 { background: #f1c40f; }
+      .color-7 { background: #1dd1a1; }
+    </style>
   </head>
   <body>
-    <div class="container">
-      <h1>🎡 Крути рулетку</h1>
-      <div class="wheel-wrapper">
-        <div id="wheel" class="wheel"></div>
-        <div class="pointer"></div>
-      </div>
-      <button id="spin-btn">Крутить</button>
-      <p id="result"></p>
+    <h2>🎡 Колесо удачи</h2>
+
+    <div class="wheel-wrapper">
+      <div id="wheel" class="wheel"></div>
+      <div class="pointer"></div>
     </div>
-    <script src="script.js"></script>
+
+    <button id="spin-btn">Крутить!</button>
+    <p id="result"></p>
+
+    <script>
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+
+      const wheel = document.getElementById('wheel');
+      const spinBtn = document.getElementById('spin-btn');
+      const resultEl = document.getElementById('result');
+
+      // Новые названия призов
+      const prizes = [
+        'Лиман',
+        'Масляковка',
+        'Саяны',
+        'Эльбрус',
+        'Култук',
+        'Отпуск',
+        'Тыл',
+        'Выходной'
+      ];
+
+      const sectorsCount = prizes.length;
+
+      for (let i = 0; i < sectorsCount; i++) {
+        const sector = document.createElement('div');
+        sector.className = `sector color-\${i}`;
+        sector.textContent = prizes[i];
+        const angle = (360 / sectorsCount) * i;
+        sector.style.transform = `rotate(\${angle}deg)`;
+        wheel.appendChild(sector);
+      }
+
+      let isSpinning = false;
+
+      spinBtn.addEventListener('click', () => {
+        if (isSpinning) return;
+        isSpinning = true;
+        spinBtn.disabled = true;
+        resultEl.textContent = '';
+
+        const randomTurns = Math.floor(Math.random() * 10) + 7;
+        const randomOffset = Math.floor(Math.random() * 360);
+        const totalDeg = randomTurns * 360 + randomOffset;
+
+        wheel.style.transition = 'none';
+        wheel.style.transform = 'rotate(0deg)';
+        
+        // Принудительный пересчет стилей (fix для анимации)
+        void wheel.offsetWidth; 
+
+        wheel.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.08, 0.99)';
+        wheel.style.transform = `rotate(\${totalDeg}deg)`;
+
+        setTimeout(() => {
+          const finalAngle = totalDeg % 360;
+          const sectorAngle = 360 / sectorsCount;
+          
+          let sectorIndex = Math.floor((360 - finalAngle) / sectorAngle);
+          sectorIndex = sectorIndex % sectorsCount;
+
+          const prize = prizes[sectorIndex];
+          resultEl.textContent = `🎉 Выпало: \${prize}`;
+          tg.sendData(prize);
+
+          setTimeout(() => {
+            wheel.style.transition = 'none';
+            wheel.style.transform = 'rotate(0deg)';
+            isSpinning = false;
+            spinBtn.disabled = false;
+          }, 100);
+        }, 4000);
+      });
+    </script>
   </body>
 </html>
